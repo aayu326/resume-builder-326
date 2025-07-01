@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free resume builder </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffd500 0%, #ff00004f 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            min-height: calc(100vh - 40px);
+        }
+
+        .form-section, .preview-section {
+            background: rgb(172, 214, 231);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .form-section {
+            max-height: calc(100vh - 100px);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.2em;
+            background: linear-gradient(45deg, #95a7f5, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            color: #555;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+
+        .dynamic-section {
+            border: 2px dashed #e1e5e9;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            position: relative;
+        }
+
+        .resume-preview {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            min-height: 800px;
+        }
+
+        .resume-header {
+            text-align: center;
+            border-bottom: 3px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .resume-name {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .resume-contact {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .resume-section {
+            margin-bottom: 25px;
+        }
+
+        .resume-section h3 {
+            font-size: 1.3em;
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .resume-item {
+            margin-bottom: 20px;
+        }
+
+        .resume-item h4 {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .resume-item .details {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .download-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: rgb(255, 0, 0);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .error {
+            color: #ff0000;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .form-section {
+                max-height: none;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <h1>Resume Builder</h1>
+            
+            <h2>Personal Information</h2>
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" placeholder="satyesh kr. singh" required>
+                <div class="error" id="fullNameError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email"placeholder="satyeshwork326@gmail.com" required>
+                <div class="error" id="emailError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" placeholder="1234567890">
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address">
+            </div>
+            
+            <div class="form-group">
+                <label for="linkedin">LinkedIn</label>
+                <input type="url" id="linkedin" placeholder="https://linkedin.com/in/yourprofile">
+            </div>
+
+            <h2>Profile Photo</h2>
+            <div class="form-group">
+                <label for="profilePhoto">Upload Photo</label>
+                <input type="file" id="profilePhoto" accept="image/*">
+                <div class="photo-preview" id="photoPreview" style="display: none;">
+                    <img id="photoPreviewImg" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; margin-top: 10px; border: 3px solid #667eea;">
+                    <button type="button" class="btn btn-danger" onclick="removePhoto()" style="margin-left: 10px; padding: 5px 10px; font-size: 12px;">Remove</button>
+                </div>
+            </div>
+
+            <h2>Professional Summary</h2>
+            <div class="form-group">
+                <label for="summary">Summary</label>
+                <textarea id="summary" placeholder="Brief professional summary..."></textarea>
+            </div>
+
+            <h2>Education</h2>
+            <div id="educationSection">
+                <div class="dynamic-section">
+                    <div class="section-header">
+                        <h3>Education Entry</h3>
+                    </div>
+                    <div class="form-group">
+                        <label>Degree</label>
+                        <input type="text" class="education-degree" placeholder="e.g., Bachelor of Science">
+                    </div>
+                    <div class="form-group">
+                        <label>Institution</label>
+                        <input type="text" class="education-school" placeholder="Tula's Institute">
+                    </div>
+                    <div class="form-group">
+                        <label>Year</label>
+                        <input type="text" class="education-year" placeholder="e.g., 2020-2024">
+                    </div>
+                    <div class="form-group">
+                        <label>GPA (Optional)</label>
+                        <input type="text" class="education-gpa" placeholder="e.g., 3.8/4.0">
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addEducation()">+ Add Education</button>
+
+            <h2>Work Experience</h2>
+            <div id="experienceSection">
+                <div class="dynamic-section">
+                    <div class="section-header">
+                        <h3>Experience Entry</h3>
+                    </div>
+                    <div class="form-group">
+                        <label>Job Title</label>
+                        <input type="text" class="exp-title" placeholder="e.g., Software Developer">
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" class="exp-company" placeholder="Company name">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration</label>
+                        <input type="text" class="exp-duration" placeholder="e.g., Jan 2022 - Present">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="exp-description" placeholder="Describe your responsibilities and achievements..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addExperience()">+ Add Experience</button>
+
+            <h2>Skills</h2>
+            <div class="form-group">
+                <label for="skills">Skills (comma-separated)</label>
+                <textarea id="skills" placeholder="JavaScript, Python, React, Node.js, Database Management..."></textarea>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <div class="resume-preview" id="resumePreview">
+                <div class="resume-header">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 20px;">
+                        <div id="previewPhotoContainer" style="display: none;">
+                            <img id="previewPhoto" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 4px solid #333;">
+                        </div>
+                        <div style="text-align: center;">
+                            <div class="resume-name" id="previewName">Your Name</div>
+                            <div class="resume-contact" id="previewContact">
+                                <div>your.email@example.com</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="border-bottom: 3px solid #333; margin-top: 20px;"></div>
+                </div>
+
+                <div class="resume-section" id="previewSummary" style="display: none;">
+                    <h3>Professional Summary</h3>
+                    <p id="previewSummaryText"></p>
+                </div>
+
+                <div class="resume-section" id="previewEducation">
+                    <h3>Education</h3>
+                    <div id="previewEducationList"></div>
+                </div>
+
+                <div class="resume-section" id="previewExperience">
+                    <h3>Work Experience</h3>
+                    <div id="previewExperienceList"></div>
+                </div>
+
+                <div class="resume-section" id="previewSkills" style="display: none;">
+                    <h3>Skills</h3>
+                    <div id="previewSkillsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="download-btn pulse" onclick="downloadPDF()">📄 Download PDF</button>
+
+    <script>
+        // Real-time preview updates
+        function updatePreview() {
+            // Personal Information
+            const fullName = document.getElementById('fullName').value || 'Your Name';
+            document.getElementById('previewName').textContent = fullName;
+
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const linkedin = document.getElementById('linkedin').value;
+
+            let contactInfo = [];
+            if (email) contactInfo.push(email);
+            if (phone) contactInfo.push(phone);
+            if (address) contactInfo.push(address);
+            if (linkedin) contactInfo.push(linkedin);
+
+            document.getElementById('previewContact').innerHTML = contactInfo.map(info => `<div>${info}</div>`).join('');
+
+            // Summary
+            const summary = document.getElementById('summary').value;
+            const summarySection = document.getElementById('previewSummary');
+            if (summary.trim()) {
+                summarySection.style.display = 'block';
+                document.getElementById('previewSummaryText').textContent = summary;
+            } else {
+                summarySection.style.display = 'none';
+            }
+
+            // Education
+            updateEducationPreview();
+
+            // Experience
+            updateExperiencePreview();
+
+            // Skills
+            const skills = document.getElementById('skills').value;
+            const skillsSection = document.getElementById('previewSkills');
+            if (skills.trim()) {
+                skillsSection.style.display = 'block';
+                const skillsArray = skills.split(',').map(skill => skill.trim()).filter(skill => skill);
+                document.getElementById('previewSkillsList').innerHTML = skillsArray.join(' • ');
+            } else {
+                skillsSection.style.display = 'none';
+            }
+        }
+
+        // Photo handling functions
+        let currentPhoto = null;
+
+        function handlePhotoUpload() {
+            const fileInput = document.getElementById('profilePhoto');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        currentPhoto = e.target.result;
+                        
+                        // Show preview in form
+                        document.getElementById('photoPreview').style.display = 'block';
+                        document.getElementById('photoPreviewImg').src = currentPhoto;
+                        
+                        // Show in resume preview
+                        document.getElementById('previewPhotoContainer').style.display = 'block';
+                        document.getElementById('previewPhoto').src = currentPhoto;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please select a valid image file.');
+                    fileInput.value = '';
+                }
+            }
+        }
+
+        function removePhoto() {
+            currentPhoto = null;
+            document.getElementById('profilePhoto').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('previewPhotoContainer').style.display = 'none';
+        }
+
+        function updateEducationPreview() {
+            const educationEntries = document.querySelectorAll('#educationSection .dynamic-section');
+            const previewList = document.getElementById('previewEducationList');
+            previewList.innerHTML = '';
+
+            educationEntries.forEach(entry => {
+                const degree = entry.querySelector('.education-degree').value;
+                const school = entry.querySelector('.education-school').value;
+                const year = entry.querySelector('.education-year').value;
+                const gpa = entry.querySelector('.education-gpa').value;
+
+                if (degree || school) {
+                    const item = document.createElement('div');
+                    item.className = 'resume-item';
+                    
+                    let html = '';
+                    if (degree) html += `<h4>${degree}</h4>`;
+                    
+                    let details = [];
+                    if (school) details.push(school);
+                    if (year) details.push(year);
+                    if (gpa) details.push(`GPA: ${gpa}`);
+                    
+                    if (details.length > 0) {
+                        html += `<div class="details">${details.join(' | ')}</div>`;
+                    }
+                    
+                    item.innerHTML = html;
+                    previewList.appendChild(item);
+                }
+            });
+        }
+
+        function updateExperiencePreview() {
+            const experienceEntries = document.querySelectorAll('#experienceSection .dynamic-section');
+            const previewList = document.getElementById('previewExperienceList');
+            previewList.innerHTML = '';
+
+            experienceEntries.forEach(entry => {
+                const title = entry.querySelector('.exp-title').value;
+                const company = entry.querySelector('.exp-company').value;
+                const duration = entry.querySelector('.exp-duration').value;
+                const description = entry.querySelector('.exp-description').value;
+
+                if (title || company) {
+                    const item = document.createElement('div');
+                    item.className = 'resume-item';
+                    
+                    let html = '';
+                    if (title) html += `<h4>${title}</h4>`;
+                    
+                    let details = [];
+                    if (company) details.push(company);
+                    if (duration) details.push(duration);
+                    
+                    if (details.length > 0) {
+                        html += `<div class="details">${details.join(' | ')}</div>`;
+                    }
+                    
+                    if (description) {
+                        html += `<p>${description}</p>`;
+                    }
+                    
+                    item.innerHTML = html;
+                    previewList.appendChild(item);
+                }
+            });
+        }
+
+        function addEducation() {
+            const section = document.getElementById('educationSection');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'dynamic-section';
+            newEntry.innerHTML = `
+                <div class="section-header">
+                    <h3>Education Entry</h3>
+                    <button type="button" class="btn btn-danger" onclick="removeSection(this)">Remove</button>
+                </div>
+                <div class="form-group">
+                    <label>Degree</label>
+                    <input type="text" class="education-degree" placeholder="e.g., Bachelor of Science">
+                </div>
+                <div class="form-group">
+                    <label>Institution</label>
+                    <input type="text" class="education-school" placeholder="Tulas institute">
+                </div>
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="text" class="education-year" placeholder="e.g., 2020-2024">
+                </div>
+                <div class="form-group">
+                    <label>GPA (Optional)</label>
+                    <input type="text" class="education-gpa" placeholder="e.g., 3.8/4.0">
+                </div>
+            `;
+            section.appendChild(newEntry);
+            attachEventListeners(newEntry);
+        }
+
+        function addExperience() {
+            const section = document.getElementById('experienceSection');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'dynamic-section';
+            newEntry.innerHTML = `
+                <div class="section-header">
+                    <h3>Experience Entry</h3>
+                    <button type="button" class="btn btn-danger" onclick="removeSection(this)">Remove</button>
+                </div>
+                <div class="form-group">
+                    <label>Job Title</label>
+                    <input type="text" class="exp-title" placeholder="e.g., Software Developer">
+                </div>
+                <div class="form-group">
+                    <label>Company</label>
+                    <input type="text" class="exp-company" placeholder="Company name">
+                </div>
+                <div class="form-group">
+                    <label>Duration</label>
+                    <input type="text" class="exp-duration" placeholder="e.g., Jan 2022 - Present">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="exp-description" placeholder="Describe your responsibilities and achievements..."></textarea>
+                </div>
+            `;
+            section.appendChild(newEntry);
+            attachEventListeners(newEntry);
+        }
+
+        function removeSection(button) {
+            button.closest('.dynamic-section').remove();
+            updatePreview();
+        }
+
+        function attachEventListeners(element) {
+            const inputs = element.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+            });
+        }
+
+        // Basic validation
+        function validateForm() {
+            let isValid = true;
+            
+            const fullName = document.getElementById('fullName');
+            const email = document.getElementById('email');
+            
+            // Clear previous errors
+            document.getElementById('fullNameError').textContent = '';
+            document.getElementById('emailError').textContent = '';
+            
+            if (!fullName.value.trim()) {
+                document.getElementById('fullNameError').textContent = 'Full name is required';
+                isValid = false;
+            }
+            
+            if (!email.value.trim()) {
+                document.getElementById('emailError').textContent = 'Email is required';
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+                document.getElementById('emailError').textContent = 'Please enter a valid email address';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // PDF Download functionality
+        function downloadPDF() {
+            if (!validateForm()) {
+                alert('Please fill in all required fields correctly.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            
+            // Get form data
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const linkedin = document.getElementById('linkedin').value;
+            const summary = document.getElementById('summary').value;
+            const skills = document.getElementById('skills').value;
+
+            let yPosition = 20;
+
+            // Add photo if available
+            if (currentPhoto) {
+                try {
+                    // Convert base64 to image and add to PDF
+                    pdf.addImage(currentPhoto, 'JPEG', 160, 15, 25, 25);
+                } catch (error) {
+                    console.log('Error adding photo to PDF:', error);
+                }
+            }
+
+            // Header
+            pdf.setFontSize(20);
+            pdf.setFont(undefined, 'bold');
+            pdf.text(fullName, currentPhoto ? 85 : 105, yPosition + 10, { align: 'center' });
+            yPosition += 15;
+
+            // Contact Info
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            let contactInfo = [email, phone, address, linkedin].filter(info => info);
+            pdf.text(contactInfo.join(' | '), currentPhoto ? 85 : 105, yPosition + 5, { align: 'center' });
+            yPosition += 20;
+
+            // Summary
+            if (summary.trim()) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('PROFESSIONAL SUMMARY', 20, yPosition);
+                yPosition += 7;
+                
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(10);
+                const summaryLines = pdf.splitTextToSize(summary, 170);
+                pdf.text(summaryLines, 20, yPosition);
+                yPosition += summaryLines.length * 5 + 10;
+            }
+
+            // Education
+            const educationEntries = document.querySelectorAll('#educationSection .dynamic-section');
+            if (educationEntries.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('EDUCATION', 20, yPosition);
+                yPosition += 7;
+
+                educationEntries.forEach(entry => {
+                    const degree = entry.querySelector('.education-degree').value;
+                    const school = entry.querySelector('.education-school').value;
+                    const year = entry.querySelector('.education-year').value;
+                    const gpa = entry.querySelector('.education-gpa').value;
+
+                    if (degree || school) {
+                        pdf.setFont(undefined, 'bold');
+                        pdf.setFontSize(10);
+                        if (degree) {
+                            pdf.text(degree, 20, yPosition);
+                            yPosition += 5;
+                        }
+
+                        pdf.setFont(undefined, 'normal');
+                        let details = [];
+                        if (school) details.push(school);
+                        if (year) details.push(year);
+                        if (gpa) details.push(`GPA: ${gpa}`);
+                        
+                        if (details.length > 0) {
+                            pdf.text(details.join(' | '), 20, yPosition);
+                            yPosition += 8;
+                        }
+                    }
+                });
+                yPosition += 5;
+            }
+
+            // Experience
+            const experienceEntries = document.querySelectorAll('#experienceSection .dynamic-section');
+            if (experienceEntries.length > 0) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('WORK EXPERIENCE', 20, yPosition);
+                yPosition += 7;
+
+                experienceEntries.forEach(entry => {
+                    const title = entry.querySelector('.exp-title').value;
+                    const company = entry.querySelector('.exp-company').value;
+                    const duration = entry.querySelector('.exp-duration').value;
+                    const description = entry.querySelector('.exp-description').value;
+
+                    if (title || company) {
+                        pdf.setFont(undefined, 'bold');
+                        pdf.setFontSize(10);
+                        if (title) {
+                            pdf.text(title, 20, yPosition);
+                            yPosition += 5;
+                        }
+
+                        pdf.setFont(undefined, 'normal');
+                        let details = [];
+                        if (company) details.push(company);
+                        if (duration) details.push(duration);
+                        
+                        if (details.length > 0) {
+                            pdf.text(details.join(' | '), 20, yPosition);
+                            yPosition += 5;
+                        }
+
+                        if (description) {
+                            const descLines = pdf.splitTextToSize(description, 170);
+                            pdf.text(descLines, 20, yPosition);
+                            yPosition += descLines.length * 5;
+                        }
+                        yPosition += 8;
+                    }
+                });
+                yPosition += 5;
+            }
+
+            // Skills
+            if (skills.trim()) {
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('SKILLS', 20, yPosition);
+                yPosition += 7;
+                
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(10);
+                const skillsLines = pdf.splitTextToSize(skills, 170);
+                pdf.text(skillsLines, 20, yPosition);
+            }
+
+            // Save the PDF
+            pdf.save(`${fullName.replace(/\s+/g, '_')}_Resume.pdf`);
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const allInputs = document.querySelectorAll('input, textarea');
+            allInputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+            });
+
+            // Add photo upload listener
+            document.getElementById('profilePhoto').addEventListener('change', handlePhotoUpload);
+
+            // Initial preview update
+            updatePreview();
+        });
+    </script>
+</body>
+</html>
